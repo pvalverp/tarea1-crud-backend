@@ -2,6 +2,20 @@
 
 API REST en Spring Boot con autenticación JWT, roles (`SUPER_ADMIN_ROLE`, `USER`) y CRUD completo para `Category` y `Product`.
 
+## Inicio rápido
+
+```bash
+docker compose up -d        # 1. levantar PostgreSQL
+./gradlew bootRun           # 2. levantar la app (o ejecutar DemoApplication desde IntelliJ)
+```
+
+La API queda en `http://localhost:8080`. Para probarla, importa **uno de estos dos archivos** (ambos están en la raíz del repo y cubren exactamente los mismos casos: login, CRUD de Categoría y Producto, y verificación de roles):
+
+- **Insomnia**: `insomnia-collection.json`
+- **Postman**: `postman-collection.json`
+
+Detalle de cada paso más abajo.
+
 ## Requisitos previos
 
 - JDK 21
@@ -50,15 +64,24 @@ Al arrancar, los *seeders* crean automáticamente (si no existen):
 
 No se crea ninguna categoría ni producto de ejemplo.
 
-### 4. Probar con Insomnia
+### 4. Probar con Insomnia o con Postman
 
-Importar el archivo `insomnia-collection.json` (ubicado en la raíz del repo) en Insomnia. Incluye:
+Ambas colecciones cubren exactamente los mismos casos (login, CRUD completo de `Category` y `Product`, y pruebas de restricción de rol con `403`). Usa la que tengas a mano; no es necesario importar las dos.
 
-- **Auth**: login con el usuario `SUPER_ADMIN_ROLE` y con el usuario `USER`.
-- **Categories**: crear, listar, obtener por id, actualizar y borrar. Incluye una petición que demuestra que un `USER` recibe `403` al intentar crear.
-- **Products**: mismo set de operaciones, demostrando la relación con `Category` vía `categoryId`. Incluye una petición que demuestra `403` para `USER` en creación.
+**Opción A — Insomnia** (`insomnia-collection.json`):
 
-El token de autenticación se inyecta automáticamente en cada petición protegida tomándolo de la respuesta del login correspondiente (no es necesario copiarlo manualmente).
+1. `Insomnia -> Application -> Preferences -> Data -> Import Data` (o el botón "Import" del workspace) y selecciona el archivo.
+2. Folders: **Auth**, **Categories**, **Products**.
+3. El token se inyecta automáticamente en cada petición protegida, tomándolo de la respuesta del login correspondiente (no hay que copiarlo a mano).
+
+**Opción B — Postman** (`postman-collection.json`):
+
+1. `File -> Import` y selecciona el archivo.
+2. Carpetas: **Auth**, **Categories**, **Products**.
+3. Ejecuta primero **Auth -> Login Super Admin** y **Auth -> Login User**: cada uno guarda su token en una variable de colección automáticamente (`super_admin_token`, `user_token`) vía un script en la pestaña "Tests".
+4. **Categories -> Create Category (SUPER_ADMIN)** guarda el id creado en `category_id`, que las demás peticiones de Categories y Products usan automáticamente. No hace falta editar nada a mano.
+
+En ambos casos, las peticiones de creación con el usuario `USER` (marcadas "expect 403") deben fallar con `403 Forbidden` — eso confirma que las reglas de rol funcionan.
 
 ## Endpoints
 
